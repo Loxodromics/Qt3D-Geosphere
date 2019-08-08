@@ -7,6 +7,7 @@
 //
 
 import QtQuick 2.12
+import QtQuick.Scene3D 2.12
 import QtQuick.Window 2.12
 
 Window {
@@ -14,4 +15,12 @@ Window {
     width: 640
     height: 480
     title: qsTr("Qt3D Geosphere")
+
+    Scene3D {
+
+        anchors.fill: parent
+
+        SceneRoot {
+        }
+    }
 }
