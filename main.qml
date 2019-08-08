@@ -1,3 +1,11 @@
+//
+//  main.qml
+//  Qt3D-Geosphere
+//
+//  Created by philipp on 08.08.2019.
+//  Copyright (c) 2019 Philipp Engelhard. All rights reserved.
+//
+
 import QtQuick 2.12
 import QtQuick.Window 2.12
 

@@ -1,8 +1,8 @@
 //
-//  %{Cpp:License:FileName}
-//  %PROJECT_NAME%
+//  main.cpp
+//  Qt3D-Geosphere
 //
-//  Created by philipp2 on 08.08.2019.
+//  Created by philipp on 08.08.2019.
 //  Copyright (c) 2019 Philipp Engelhard. All rights reserved.
 //
 #include <QGuiApplication>
