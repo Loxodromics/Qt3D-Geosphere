@@ -46,10 +46,24 @@ Entity {
     Entity {
         id: scene
 
+        GeosphereMesh {
+            id: geosphere
+
+        }
+
+        PhongMaterial {
+            id: material
+            diffuse: "blue"
+        }
+
         DirectionalLight {
             id: directionalLight
             color: "white"
             intensity: 1
         }
+    }
+
+    Entity {
+        components: [geosphere, material]
     }
 }
