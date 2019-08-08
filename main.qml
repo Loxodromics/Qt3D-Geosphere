@@ -19,6 +19,10 @@ Window {
     Scene3D {
 
         anchors.fill: parent
+        focus: true
+
+        aspects: ["input", "logic"]
+        cameraAspectRatioMode: Scene3D.AutomaticAspectRatio
 
         SceneRoot {
         }
