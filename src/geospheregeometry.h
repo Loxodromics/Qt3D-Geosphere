@@ -27,16 +27,15 @@ public:
 	~GeosphereGeometry();
 
 	Qt3DRender::QAttribute *positionAttribute() const;
-	Qt3DRender::QAttribute *indexAttribute() const;
+	Qt3DRender::QAttribute *normalAttribute() const;
 
 protected:
 	void init();
 	void fillBuffers();
 
 	Qt3DRender::QAttribute *m_positionAttribute;
-	Qt3DRender::QAttribute *m_indexAttribute;
+	Qt3DRender::QAttribute *m_normalAttribute;
 	Qt3DRender::QBuffer *m_vertexBuffer;
-	Qt3DRender::QBuffer *m_indexBuffer;
 };
 
 #endif // GEOSPHEREGEOMETRY_H
