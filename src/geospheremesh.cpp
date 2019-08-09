@@ -8,12 +8,12 @@
 #include "geospheremesh.h"
 #include "geospheregeometry.h"
 
-GeosphereMesh::GeosphereMesh(QNode *parent): QGeometryRenderer(parent)
+GeosphereMesh::GeosphereMesh(QNode* parent)
+	: QGeometryRenderer(parent)
 {
-	GeosphereGeometry *geometry = new GeosphereGeometry(this);
+	GeosphereGeometry* geometry = new GeosphereGeometry(this);
 	QGeometryRenderer::setGeometry(geometry);
 	QGeometryRenderer::setPrimitiveType(Qt3DRender::QGeometryRenderer::Triangles);
 }
 
-GeosphereMesh::~GeosphereMesh()
-{}
+GeosphereMesh::~GeosphereMesh() {}

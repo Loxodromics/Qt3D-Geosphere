@@ -16,29 +16,28 @@ namespace Qt3DRender {
 class QAttribute;
 class QBuffer;
 
-}    // namespace Qt3DRender
+}	// namespace Qt3DRender
 
-class GeosphereGeometry : public Qt3DRender::QGeometry
-{
+class GeosphereGeometry : public Qt3DRender::QGeometry {
 	Q_OBJECT
 
 public:
-	explicit GeosphereGeometry(Qt3DCore::QNode *parent = nullptr);
+	explicit GeosphereGeometry(Qt3DCore::QNode* parent = nullptr);
 	~GeosphereGeometry();
 
-	Qt3DRender::QAttribute *positionAttribute() const;
-	Qt3DRender::QAttribute *indexAttribute() const;
-	Qt3DRender::QAttribute *normalAttribute() const;
+	Qt3DRender::QAttribute* positionAttribute() const;
+	Qt3DRender::QAttribute* indexAttribute() const;
+	Qt3DRender::QAttribute* normalAttribute() const;
 
 protected:
 	void init();
 	void fillBuffers();
 
-	Qt3DRender::QAttribute *m_positionAttribute = nullptr;
-	Qt3DRender::QAttribute *m_indexAttribute = nullptr;
-	Qt3DRender::QAttribute *m_normalAttribute = nullptr;
-	Qt3DRender::QBuffer *m_vertexBuffer = nullptr;
-	Qt3DRender::QBuffer *m_indexBuffer = nullptr;
+	Qt3DRender::QAttribute* m_positionAttribute = nullptr;
+	Qt3DRender::QAttribute* m_indexAttribute = nullptr;
+	Qt3DRender::QAttribute* m_normalAttribute = nullptr;
+	Qt3DRender::QBuffer* m_vertexBuffer = nullptr;
+	Qt3DRender::QBuffer* m_indexBuffer = nullptr;
 };
 
-#endif // GEOSPHEREGEOMETRY_H
+#endif	// GEOSPHEREGEOMETRY_H

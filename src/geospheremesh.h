@@ -11,13 +11,12 @@
 #include <Qt3DExtras/qt3dextras_global.h>
 #include <Qt3DRender/qgeometryrenderer.h>
 
-class GeosphereMesh : public Qt3DRender::QGeometryRenderer
-{
+class GeosphereMesh : public Qt3DRender::QGeometryRenderer {
 
 	Q_OBJECT
 
 public:
-	explicit GeosphereMesh(Qt3DCore::QNode *parent = nullptr);
+	explicit GeosphereMesh(Qt3DCore::QNode* parent = nullptr);
 	~GeosphereMesh();
 
 protected:
@@ -30,8 +29,8 @@ protected:
 	void setFirstInstance(int firstInstance);
 	void setRestartIndexValue(int index);
 	void setPrimitiveRestartEnabled(bool enabled);
-	void setGeometry(Qt3DRender::QGeometry *geometry);
+	void setGeometry(Qt3DRender::QGeometry* geometry);
 	void setPrimitiveType(PrimitiveType primitiveType);
 };
 
-#endif // GEOSPHEREMESH_H
+#endif	// GEOSPHEREMESH_H

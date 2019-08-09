@@ -17,7 +17,7 @@ import LFD 1.0
 Entity {
     id: sceneRoot
 
-        property vector3d upVector: Qt.vector3d(0, 1, 0)
+    property vector3d upVector: Qt.vector3d(0, 1, 0)
 
     Camera {
         id: camera
@@ -52,7 +52,6 @@ Entity {
 
         GeosphereMesh {
             id: geosphere
-
         }
 
         PhongMaterial {
@@ -71,9 +70,9 @@ Entity {
         id: geosphereTransform
         property real userAngle: 0.0
         matrix: {
-            var m = Qt.matrix4x4();
+            var m = Qt.matrix4x4()
             m.rotate(userAngle, upVector)
-            return m;
+            return m
         }
     }
 
