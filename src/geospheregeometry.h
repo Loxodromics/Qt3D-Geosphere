@@ -31,7 +31,6 @@ public:
 
 protected:
 	void init();
-	void fillBuffers();
 
 	Qt3DRender::QAttribute* m_positionAttribute = nullptr;
 	Qt3DRender::QAttribute* m_indexAttribute = nullptr;
