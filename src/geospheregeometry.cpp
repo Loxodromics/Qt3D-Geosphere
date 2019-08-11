@@ -13,36 +13,109 @@
 
 #include <QDebug>
 
+#include <array>
 #include <limits>
 #include <stdlib.h>
+
+using Index = uint64_t;
+using Triangle = std::array<Index, 3>;
+using TriangleList = std::vector<Triangle>;
+using VertexList = std::vector<QVector3D>;
+using Lookup = std::map<std::pair<Index, Index>, Index>;
+using IndexedMesh = std::pair<VertexList, TriangleList>;
 
 using namespace Qt3DRender;
 
 namespace {
 
-QByteArray createGeosphereMeshVertexData(int subdevisions, float radius)
+Index vertexForEdge(Lookup& lookup, VertexList& vertices, Index first, Index second)
 {
-	Q_UNUSED(subdevisions);
-	Q_UNUSED(radius);
+	Lookup::key_type key(first, second);
+	if (key.first > key.second)
+		std::swap(key.first, key.second);
+
+	auto inserted = lookup.insert({ key, vertices.size() });
+	if (inserted.second) {
+		auto& edge0 = vertices[first];
+		auto& edge1 = vertices[second];
+		auto point = (edge0 + edge1).normalized();
+		vertices.push_back(point);
+	}
+
+	return inserted.first->second;
+}
+
+TriangleList subdivide(VertexList& vertices, TriangleList triangles)
+{
+	Lookup lookup;
+	TriangleList result;
+
+	for (auto&& each : triangles) {
+		std::array<Index, 3> mid;
+		for (unsigned long edge = 0; edge < 3; ++edge) {
+			mid[edge] = vertexForEdge(lookup, vertices, each[edge], each[(edge + 1) % 3]);
+		}
+
+		result.push_back({ each[0], mid[0], mid[2] });
+		result.push_back({ each[1], mid[1], mid[0] });
+		result.push_back({ each[2], mid[2], mid[1] });
+		result.push_back({ mid[0], mid[1], mid[2] });
+	}
+
+	return result;
+}
+
+IndexedMesh makeGeoSphere(int subdivisions)
+{
 	const float X = 0.525731112119133606f;
 	const float Z = 0.850650808352039932f;
 
 	/// Vertices
-	const auto vertices = QVector<QVector3D>()
-	  << QVector3D(-X, 0.0f, Z) << QVector3D(X, 0.0f, Z) << QVector3D(-X, 0.0f, -Z)
+	VertexList vertices
+	  = { QVector3D(-X, 0.0f, Z), QVector3D(X, 0.0f, Z), QVector3D(-X, 0.0f, -Z), QVector3D(X, 0.0f, -Z),
+			QVector3D(0.0f, Z, X), QVector3D(0.0f, Z, -X), QVector3D(0.0f, -Z, X), QVector3D(0.0f, -Z, -X),
+			QVector3D(Z, X, 0.0f), QVector3D(-Z, X, 0.0f), QVector3D(Z, -X, 0.0f), QVector3D(-Z, -X, 0.0f) };
 
-	  << QVector3D(X, 0.0f, -Z) << QVector3D(0.0f, Z, X) << QVector3D(0.0f, Z, -X)
+	// clang-format off
+	TriangleList triangles = { {1, 4, 0},
+							   {4, 9, 0},
+							   {4, 5, 9},
+							   {8, 5, 4},
+							   {1, 8, 4},
+							   {1, 10, 8},
+							   {10, 3, 8},
+							   {8, 3, 5},
+							   {3, 2, 5},
+							   {3, 7, 2},
+							   {3, 10, 7},
+							   {10, 6, 7},
+							   {6, 11, 7},
+							   {6, 0, 11},
+							   {6, 1, 0},
+							   {10, 1, 6},
+							   {11, 0, 9},
+							   {2, 11, 9},
+							   {5, 2, 9},
+							   {11, 2, 7} };
+	// clang-format on
 
-	  << QVector3D(0.0f, -Z, X) << QVector3D(0.0f, -Z, -X) << QVector3D(Z, X, 0.0f)
+	for (int i = 0; i < subdivisions; ++i) {
+		triangles = subdivide(vertices, triangles);
+	}
 
-	  << QVector3D(-Z, X, 0.0f) << QVector3D(Z, -X, 0.0f) << QVector3D(-Z, -X, 0.0f);
+	return { vertices, triangles };
+}
+
+QByteArray createGeosphereMeshVertexData(VertexList vertices, float radius)
+{
+	Q_UNUSED(radius);
 
 	QByteArray bufferBytes;
 	/// vec3 pos and vec3 normal
 	const quint32 elementSize = 3 + 3;
 	const quint32 stride = elementSize * sizeof(float);
-	const int nVerts = 20;
-	bufferBytes.resize(stride * nVerts);
+	const unsigned long nVerts = vertices.size();
+	bufferBytes.resize(static_cast<int>(stride * nVerts));
 
 	float* fptr = reinterpret_cast<float*>(bufferBytes.data());
 
@@ -59,42 +132,20 @@ QByteArray createGeosphereMeshVertexData(int subdevisions, float radius)
 	return bufferBytes;
 }
 
-QByteArray createGeosphereMeshIndexData(int subdevisions)
+QByteArray createGeosphereMeshIndexData(TriangleList triangles)
 {
-	Q_UNUSED(subdevisions);
-	int faces = 20;
+	const unsigned long faces = triangles.size();
 
 	QByteArray indexBytes;
-	const int indices = faces * 3;
+	const unsigned long indices = faces * 3;
 	Q_ASSERT(indices < 65536);
-	indexBytes.resize(indices * sizeof(quint16));
+	indexBytes.resize(static_cast<int>(indices * sizeof(quint16)));
 	quint16* indexPtr = reinterpret_cast<quint16*>(indexBytes.data());
 
-	// clang-format off
-	const std::vector<quint16> rawIndices = { 1, 4, 0,
-										   4, 9, 0,
-										   4, 5, 9,
-										   8, 5, 4,
-										   1, 8, 4,
-										   1, 10, 8,
-										   10, 3, 8,
-										   8, 3, 5,
-										   3, 2, 5,
-										   3, 7, 2,
-										   3, 10, 7,
-										   10, 6, 7,
-										   6, 11, 7,
-										   6, 0, 11,
-										   6, 1, 0,
-										   10, 1, 6,
-										   11, 0, 9,
-										   2, 11, 9,
-										   5, 2, 9,
-										   11, 2, 7 };
-	// clang-format on
-
-	for (const auto each : rawIndices) {
-		*indexPtr++ = each;
+	for (const auto each : triangles) {
+		*indexPtr++ = static_cast<quint16>(each[0]);
+		*indexPtr++ = static_cast<quint16>(each[1]);
+		*indexPtr++ = static_cast<quint16>(each[2]);
 	}
 
 	return indexBytes;
@@ -104,51 +155,50 @@ QByteArray createGeosphereMeshIndexData(int subdevisions)
 
 class GeosphereVertexDataFunctor : public Qt3DRender::QBufferDataGenerator {
 public:
-	GeosphereVertexDataFunctor(int subdevisions, float radius)
-		: m_subdevisions(subdevisions)
+	GeosphereVertexDataFunctor(VertexList vertices, float radius)
+		: m_vertices(vertices)
 		, m_radius(radius)
 	{
 	}
 
-	QByteArray operator()() override { return createGeosphereMeshVertexData(m_subdevisions, m_radius); }
+	QByteArray operator()() override { return createGeosphereMeshVertexData(m_vertices, m_radius); }
 
 	bool operator==(const QBufferDataGenerator& other) const override
 	{
 		const GeosphereVertexDataFunctor* otherFunctor = functor_cast<GeosphereVertexDataFunctor>(&other);
 		if (otherFunctor != nullptr)
-			return (otherFunctor->m_subdevisions == m_subdevisions
-			  && otherFunctor->m_radius == m_radius);
+			return (otherFunctor->m_vertices == m_vertices && otherFunctor->m_radius == m_radius);
 		return false;
 	}
 
 	QT3D_FUNCTOR(GeosphereVertexDataFunctor)
 
 private:
-	int m_subdevisions;
+	VertexList m_vertices;
 	float m_radius;
 };
 
 class GeosphereIndexDataFunctor : public QBufferDataGenerator {
 public:
-	GeosphereIndexDataFunctor(int subdevisions)
-		: m_subdevisions(subdevisions)
+	GeosphereIndexDataFunctor(TriangleList triangles)
+		: m_triangles(triangles)
 	{
 	}
 
-	QByteArray operator()() override { return createGeosphereMeshIndexData(m_subdevisions); }
+	QByteArray operator()() override { return createGeosphereMeshIndexData(m_triangles); }
 
 	bool operator==(const QBufferDataGenerator& other) const override
 	{
 		const GeosphereIndexDataFunctor* otherFunctor = functor_cast<GeosphereIndexDataFunctor>(&other);
 		if (otherFunctor != nullptr)
-			return (otherFunctor->m_subdevisions == m_subdevisions);
+			return (otherFunctor->m_triangles == m_triangles);
 		return false;
 	}
 
 	QT3D_FUNCTOR(GeosphereIndexDataFunctor)
 
 private:
-	int m_subdevisions;
+	TriangleList m_triangles;
 };
 
 GeosphereGeometry::GeosphereGeometry(Qt3DCore::QNode* parent)
@@ -178,10 +228,12 @@ void GeosphereGeometry::init()
 	m_vertexBuffer = new Qt3DRender::QBuffer(this);
 	m_indexBuffer = new Qt3DRender::QBuffer(this);
 
-	const int nVerts = 20 * 3;
+	auto verticesTriangles = makeGeoSphere(2);
+
+	const uint nVerts = static_cast<uint>(verticesTriangles.second.size() * 3);
+
 	/// vec3 pos, vec3 normal
 	const int stride = (3 + 3) * sizeof(float);
-	const int faces = 20;
 
 	m_positionAttribute->setName(QAttribute::defaultPositionAttributeName());
 	m_positionAttribute->setVertexBaseType(QAttribute::Float);
@@ -203,15 +255,12 @@ void GeosphereGeometry::init()
 	m_indexAttribute->setAttributeType(QAttribute::IndexAttribute);
 	m_indexAttribute->setVertexBaseType(QAttribute::UnsignedShort);
 	m_indexAttribute->setBuffer(m_indexBuffer);
+	m_indexAttribute->setCount(nVerts);
 
-	/// Each primitive has 3 vertives
-	m_indexAttribute->setCount(faces * 3);
-
-	m_vertexBuffer->setDataGenerator(QSharedPointer<GeosphereVertexDataFunctor>::create(1, 1.0f));
-	m_indexBuffer->setDataGenerator(QSharedPointer<GeosphereIndexDataFunctor>::create(1));
+	m_vertexBuffer->setDataGenerator(QSharedPointer<GeosphereVertexDataFunctor>::create(verticesTriangles.first, 1.0f));
+	m_indexBuffer->setDataGenerator(QSharedPointer<GeosphereIndexDataFunctor>::create(verticesTriangles.second));
 
 	this->addAttribute(m_positionAttribute);
 	this->addAttribute(m_normalAttribute);
 	this->addAttribute(m_indexAttribute);
 }
-
