@@ -159,13 +159,13 @@ public:
 	{
 	}
 
-	QByteArray operator()() override { return createGeosphereMeshVertexData(m_vertices, m_radius); }
+	QByteArray operator()() override { return createGeosphereMeshVertexData(this->m_vertices, this->m_radius); }
 
 	bool operator==(const QBufferDataGenerator& other) const override
 	{
 		const GeosphereVertexDataFunctor* otherFunctor = functor_cast<GeosphereVertexDataFunctor>(&other);
 		if (otherFunctor != nullptr)
-			return (otherFunctor->m_vertices == m_vertices && qFuzzyCompare(otherFunctor->m_radius, m_radius));
+			return (otherFunctor->m_vertices == this->m_vertices && qFuzzyCompare(otherFunctor->m_radius, this->m_radius));
 		return false;
 	}
 
@@ -183,13 +183,13 @@ public:
 	{
 	}
 
-	QByteArray operator()() override { return createGeosphereMeshIndexData(m_triangles); }
+	QByteArray operator()() override { return createGeosphereMeshIndexData(this->m_triangles); }
 
 	bool operator==(const QBufferDataGenerator& other) const override
 	{
 		const GeosphereIndexDataFunctor* otherFunctor = functor_cast<GeosphereIndexDataFunctor>(&other);
 		if (otherFunctor != nullptr)
-			return (otherFunctor->m_triangles == m_triangles);
+			return (otherFunctor->m_triangles == this->m_triangles);
 		return false;
 	}
 
@@ -244,11 +244,11 @@ void GeosphereGeometry::setSubdivisions(unsigned int subdivisions)
 
 void GeosphereGeometry::init()
 {
-	m_positionAttribute = new QAttribute(this);
-	m_indexAttribute = new QAttribute(this);
-	m_normalAttribute = new QAttribute(this);
-	m_vertexBuffer = new Qt3DRender::QBuffer(this);
-	m_indexBuffer = new Qt3DRender::QBuffer(this);
+	this->m_positionAttribute = new QAttribute(this);
+	this->m_indexAttribute = new QAttribute(this);
+	this->m_normalAttribute = new QAttribute(this);
+	this->m_vertexBuffer = new Qt3DRender::QBuffer(this);
+	this->m_indexBuffer = new Qt3DRender::QBuffer(this);
 
 	auto verticesTriangles = makeGeoSphere(this->m_subdivisions);
 
@@ -257,35 +257,35 @@ void GeosphereGeometry::init()
 	/// vec3 pos, vec3 normal
 	const int stride = (3 + 3) * sizeof(float);
 
-	m_positionAttribute->setName(QAttribute::defaultPositionAttributeName());
-	m_positionAttribute->setVertexBaseType(QAttribute::Float);
-	m_positionAttribute->setVertexSize(3);
-	m_positionAttribute->setAttributeType(QAttribute::VertexAttribute);
-	m_positionAttribute->setBuffer(m_vertexBuffer);
-	m_positionAttribute->setByteStride(stride);
-	m_positionAttribute->setCount(nVerts);
+	this->m_positionAttribute->setName(QAttribute::defaultPositionAttributeName());
+	this->m_positionAttribute->setVertexBaseType(QAttribute::Float);
+	this->m_positionAttribute->setVertexSize(3);
+	this->m_positionAttribute->setAttributeType(QAttribute::VertexAttribute);
+	this->m_positionAttribute->setBuffer(this->m_vertexBuffer);
+	this->m_positionAttribute->setByteStride(stride);
+	this->m_positionAttribute->setCount(nVerts);
 
-	m_normalAttribute->setName(QAttribute::defaultNormalAttributeName());
-	m_normalAttribute->setVertexBaseType(QAttribute::Float);
-	m_normalAttribute->setVertexSize(3);
-	m_normalAttribute->setAttributeType(QAttribute::VertexAttribute);
-	m_normalAttribute->setBuffer(m_vertexBuffer);
-	m_normalAttribute->setByteStride(stride);
-	m_normalAttribute->setByteOffset(3 * sizeof(float));
-	m_normalAttribute->setCount(nVerts);
+	this->m_normalAttribute->setName(QAttribute::defaultNormalAttributeName());
+	this->m_normalAttribute->setVertexBaseType(QAttribute::Float);
+	this->m_normalAttribute->setVertexSize(3);
+	this->m_normalAttribute->setAttributeType(QAttribute::VertexAttribute);
+	this->m_normalAttribute->setBuffer(this->m_vertexBuffer);
+	this->m_normalAttribute->setByteStride(stride);
+	this->m_normalAttribute->setByteOffset(3 * sizeof(float));
+	this->m_normalAttribute->setCount(nVerts);
 
-	m_indexAttribute->setAttributeType(QAttribute::IndexAttribute);
-	m_indexAttribute->setVertexBaseType(QAttribute::UnsignedShort);
-	m_indexAttribute->setBuffer(m_indexBuffer);
-	m_indexAttribute->setCount(nVerts);
+	this->m_indexAttribute->setAttributeType(QAttribute::IndexAttribute);
+	this->m_indexAttribute->setVertexBaseType(QAttribute::UnsignedShort);
+	this->m_indexAttribute->setBuffer(this->m_indexBuffer);
+	this->m_indexAttribute->setCount(nVerts);
 
-	m_vertexBuffer->setDataGenerator(
+	this->m_vertexBuffer->setDataGenerator(
 	  QSharedPointer<GeosphereVertexDataFunctor>::create(verticesTriangles.first, this->m_radius));
-	m_indexBuffer->setDataGenerator(QSharedPointer<GeosphereIndexDataFunctor>::create(verticesTriangles.second));
+	this->m_indexBuffer->setDataGenerator(QSharedPointer<GeosphereIndexDataFunctor>::create(verticesTriangles.second));
 
-	this->addAttribute(m_positionAttribute);
-	this->addAttribute(m_normalAttribute);
-	this->addAttribute(m_indexAttribute);
+	this->addAttribute(this->m_positionAttribute);
+	this->addAttribute(this->m_normalAttribute);
+	this->addAttribute(this->m_indexAttribute);
 }
 
 void GeosphereGeometry::update()
@@ -296,7 +296,7 @@ void GeosphereGeometry::update()
 	this->m_positionAttribute->setCount(nVerts);
 	this->m_normalAttribute->setCount(nVerts);
 	this->m_indexAttribute->setCount(nVerts);
-	m_vertexBuffer->setDataGenerator(
+	this->m_vertexBuffer->setDataGenerator(
 	  QSharedPointer<GeosphereVertexDataFunctor>::create(verticesTriangles.first, this->m_radius));
-	m_indexBuffer->setDataGenerator(QSharedPointer<GeosphereIndexDataFunctor>::create(verticesTriangles.second));
+	this->m_indexBuffer->setDataGenerator(QSharedPointer<GeosphereIndexDataFunctor>::create(verticesTriangles.second));
 }
