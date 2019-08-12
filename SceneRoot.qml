@@ -52,6 +52,9 @@ Entity {
 
         GeosphereMesh {
             id: geosphere
+
+            subdivisions: 2
+            radius: 1.2
         }
 
         PhongMaterial {

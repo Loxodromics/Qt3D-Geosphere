@@ -15,9 +15,24 @@ class GeosphereMesh : public Qt3DRender::QGeometryRenderer {
 
 	Q_OBJECT
 
+	Q_PROPERTY(float radius READ radius WRITE setRadius NOTIFY radiusChanged)
+	Q_PROPERTY(unsigned int subdivisions READ subdivisions WRITE setSubdivisions NOTIFY subdivisionsChanged)
+
 public:
 	explicit GeosphereMesh(Qt3DCore::QNode* parent = nullptr);
 	~GeosphereMesh();
+
+	float radius() const;
+
+	unsigned int subdivisions() const;
+
+public slots:
+	void setRadius(float radius);
+	void setSubdivisions(unsigned int subdivisions);
+
+signals:
+	void radiusChanged(float radius);
+	void subdivisionsChanged(unsigned int subdivisions);
 
 protected:
 	// As this is a default provided geometry renderer, no one should be able

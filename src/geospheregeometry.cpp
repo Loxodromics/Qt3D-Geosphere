@@ -65,7 +65,7 @@ TriangleList subdivide(VertexList& vertices, TriangleList triangles)
 	return result;
 }
 
-IndexedMesh makeGeoSphere(int subdivisions)
+IndexedMesh makeGeoSphere(unsigned int subdivisions)
 {
 	const float X = 0.525731112119133606f;
 	const float Z = 0.850650808352039932f;
@@ -99,7 +99,7 @@ IndexedMesh makeGeoSphere(int subdivisions)
 							   {11, 2, 7} };
 	// clang-format on
 
-	for (int i = 0; i < subdivisions; ++i) {
+	for (unsigned int i = 0; i < subdivisions; ++i) {
 		triangles = subdivide(vertices, triangles);
 	}
 
@@ -108,8 +108,6 @@ IndexedMesh makeGeoSphere(int subdivisions)
 
 QByteArray createGeosphereMeshVertexData(VertexList vertices, float radius)
 {
-	Q_UNUSED(radius);
-
 	QByteArray bufferBytes;
 	/// vec3 pos and vec3 normal
 	const quint32 elementSize = 3 + 3;
@@ -120,9 +118,9 @@ QByteArray createGeosphereMeshVertexData(VertexList vertices, float radius)
 	float* fptr = reinterpret_cast<float*>(bufferBytes.data());
 
 	for (auto vertex : vertices) {
-		*fptr++ = vertex.x();
-		*fptr++ = vertex.y();
-		*fptr++ = vertex.z();
+		*fptr++ = vertex.x() * radius;
+		*fptr++ = vertex.y() * radius;
+		*fptr++ = vertex.z() * radius;
 
 		auto normal = vertex.normalized();
 		*fptr++ = normal.x();
@@ -167,7 +165,7 @@ public:
 	{
 		const GeosphereVertexDataFunctor* otherFunctor = functor_cast<GeosphereVertexDataFunctor>(&other);
 		if (otherFunctor != nullptr)
-			return (otherFunctor->m_vertices == m_vertices && otherFunctor->m_radius == m_radius);
+			return (otherFunctor->m_vertices == m_vertices && qFuzzyCompare(otherFunctor->m_radius, m_radius));
 		return false;
 	}
 
@@ -220,6 +218,30 @@ QAttribute* GeosphereGeometry::indexAttribute() const { return this->m_indexAttr
 
 QAttribute* GeosphereGeometry::normalAttribute() const { return this->m_normalAttribute; }
 
+float GeosphereGeometry::radius() const { return this->m_radius; }
+
+unsigned int GeosphereGeometry::subdivisions() const { return this->m_subdivisions; }
+
+void GeosphereGeometry::setRadius(float radius)
+{
+	if (qFuzzyCompare(this->m_radius, radius))
+		return;
+
+	this->m_radius = radius;
+	this->update();
+	emit radiusChanged(this->m_radius);
+}
+
+void GeosphereGeometry::setSubdivisions(unsigned int subdivisions)
+{
+	if (this->m_subdivisions == subdivisions)
+		return;
+
+	this->m_subdivisions = subdivisions;
+	this->update();
+	emit subdivisionsChanged(this->m_subdivisions);
+}
+
 void GeosphereGeometry::init()
 {
 	m_positionAttribute = new QAttribute(this);
@@ -228,7 +250,7 @@ void GeosphereGeometry::init()
 	m_vertexBuffer = new Qt3DRender::QBuffer(this);
 	m_indexBuffer = new Qt3DRender::QBuffer(this);
 
-	auto verticesTriangles = makeGeoSphere(2);
+	auto verticesTriangles = makeGeoSphere(this->m_subdivisions);
 
 	const uint nVerts = static_cast<uint>(verticesTriangles.second.size() * 3);
 
@@ -257,10 +279,24 @@ void GeosphereGeometry::init()
 	m_indexAttribute->setBuffer(m_indexBuffer);
 	m_indexAttribute->setCount(nVerts);
 
-	m_vertexBuffer->setDataGenerator(QSharedPointer<GeosphereVertexDataFunctor>::create(verticesTriangles.first, 1.0f));
+	m_vertexBuffer->setDataGenerator(
+	  QSharedPointer<GeosphereVertexDataFunctor>::create(verticesTriangles.first, this->m_radius));
 	m_indexBuffer->setDataGenerator(QSharedPointer<GeosphereIndexDataFunctor>::create(verticesTriangles.second));
 
 	this->addAttribute(m_positionAttribute);
 	this->addAttribute(m_normalAttribute);
 	this->addAttribute(m_indexAttribute);
+}
+
+void GeosphereGeometry::update()
+{
+	auto verticesTriangles = makeGeoSphere(this->m_subdivisions);
+
+	const uint nVerts = static_cast<uint>(verticesTriangles.second.size() * 3);
+	this->m_positionAttribute->setCount(nVerts);
+	this->m_normalAttribute->setCount(nVerts);
+	this->m_indexAttribute->setCount(nVerts);
+	m_vertexBuffer->setDataGenerator(
+	  QSharedPointer<GeosphereVertexDataFunctor>::create(verticesTriangles.first, this->m_radius));
+	m_indexBuffer->setDataGenerator(QSharedPointer<GeosphereIndexDataFunctor>::create(verticesTriangles.second));
 }
